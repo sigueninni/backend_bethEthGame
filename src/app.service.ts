@@ -4,6 +4,7 @@ import { sepolia } from 'viem/chains';
 import * as gameJson from './assets/BetEthGame.json';
 import * as tokenJson from './assets/BethEthToken.json';
 import { privateKeyToAccount } from 'viem/accounts';
+import { from } from 'rxjs';
 
 
 const MAXUINT256 =
@@ -12,7 +13,6 @@ const MAXUINT256 =
 
 @Injectable()
 export class AppService {
-
 
   publicClient;
   walletClient;
@@ -137,25 +137,40 @@ export class AppService {
 
   async openBets() {
 
-    const response = await this.walletClient.writeContract({
+    const openBetsTx = await this.walletClient.writeContract({
       address: this.getContractAddress(),
       abi: gameJson.abi,
       functionName: "openBets",
       from: this.getServerWalletAddress()
     })
 
-    return response;
+    console.log("openBetsTx response: ", openBetsTx)
+
+    const openBetsTxReceipt = await this.publicClient.waitForTransactionReceipt({ hash: openBetsTx })
+
+    console.log("openBetsTxReceipt: ", openBetsTxReceipt)
+
+    return openBetsTxReceipt.status;
+
+
   }
 
   async closeBets() {
-    const response = await this.walletClient.writeContract({
+
+    const closeBetsTx = await this.walletClient.writeContract({
       address: this.getContractAddress(),
       abi: gameJson.abi,
       functionName: "closeBets",
       from: this.getServerWalletAddress()
     })
 
-    return response;
+    console.log("closeBetsTx response: ", closeBetsTx)
+
+    const closeBetsTxReceipt = await this.publicClient.waitForTransactionReceipt({ hash: closeBetsTx })
+
+    console.log("closeBetsTxReceipt: ", closeBetsTxReceipt)
+
+    return closeBetsTxReceipt.status;
   }
 
 
@@ -186,25 +201,32 @@ export class AppService {
 
     console.log("allowTxReceipt: ", allowTxReceipt)
 
-    return allowTxReceipt;
+    return allowTxReceipt.status;
 
   }
 
   async buyTokens(amount: string) {
     await this.approve(this.walletClient.address);
-    const response = await this.walletClient.writeContract({
+
+    const buyTokensTx = await this.walletClient.writeContract({
       address: this.getContractAddress(),
       abi: gameJson.abi,
       functionName: "purchaseTokens",
       from: this.getServerWalletAddress(),
       value: parseEther(amount)
-    })
+    });
 
-    return response;
+    console.log("buyTokensTx response: ", buyTokensTx)
+
+    const buyTokensTxReceipt = await this.publicClient.waitForTransactionReceipt({ hash: buyTokensTx })
+
+    console.log("buyTokensTxReceipt: ", buyTokensTxReceipt)
+
+    return buyTokensTxReceipt.status;
   }
 
   async bet(prediction: string) {
-    const response = await this.walletClient.writeContract({
+    const betTx = await this.walletClient.writeContract({
       address: this.getContractAddress(),
       abi: gameJson.abi,
       functionName: "bet",
@@ -213,7 +235,55 @@ export class AppService {
       args: [prediction]
     })
 
-    return response;
+    console.log("betTx response: ", betTx)
+
+    const betTxReceipt = await this.publicClient.waitForTransactionReceipt({ hash: betTx })
+
+    console.log("betTxReceipt: ", betTxReceipt)
+
+    return betTxReceipt.status;
   }
+
+
+  async setWinner() {
+    const setWinnerTx = await this.walletClient.writeContract({
+      address: this.getContractAddress(),
+      abi: gameJson.abi,
+      functionName: "setWinner",
+      from: this.getServerWalletAddress(),
+    });
+
+    console.log("setWinnerTx response: ", setWinnerTx)
+
+    const setWinnerTxReceipt = await this.publicClient.waitForTransactionReceipt({ hash: setWinnerTx })
+
+    console.log("setWinnerTxReceipt: ", setWinnerTxReceipt)
+
+    return setWinnerTxReceipt.status;
+  }
+
+
+  async getWinner() {
+    const winner = await this.publicClient.readContract({
+      address: this.getContractAddress(),
+      abi: gameJson.abi,
+      functionName: "winner"
+    });
+
+    return winner;
+  }
+
+  async getEthUsdPrice() {
+    const getEthUsdPrice = await this.publicClient.readContract({
+      address: this.getContractAddress(),
+      abi: gameJson.abi,
+      functionName: "getEthUsdPrice"
+    });
+
+    const ethUsdPrice = `${getEthUsdPrice}`;
+    return ethUsdPrice;
+  }
+
+
 
 }

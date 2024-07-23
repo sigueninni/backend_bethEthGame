@@ -72,4 +72,21 @@ export class AppController {
     return { result: await this.appService.bet(body.prediction) };
   }
 
+
+  @Post('Set-winner')
+  async setWinner() {
+    return { result: await this.appService.setWinner() };
+  }
+
+
+  @Get('get-winner')
+  async getWinner() {
+    return { result: await this.appService.getWinner() };
+  }
+
+  @Get('get-eth-usd-price')
+  async getEthUsdPrice() {
+    return { result: await this.appService.getEthUsdPrice() };
+  }
+
 }
