@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Address, createPublicClient, http, formatUnits, createWalletClient, parseEther } from 'viem';
 import { sepolia } from 'viem/chains';
 import * as gameJson from './assets/BetEthGame.json';
+import * as tokenJson from './assets/BethEthToken.json';
 import { privateKeyToAccount } from 'viem/accounts';
 
 
@@ -11,6 +12,7 @@ const MAXUINT256 =
 
 @Injectable()
 export class AppService {
+
 
   publicClient;
   walletClient;
@@ -172,7 +174,7 @@ export class AppService {
 
     const allowTx = await this.walletClient.writeContract({
       address: tokenAddress,
-      abi: gameJson.abi,
+      abi: tokenJson.abi,
       functionName: "approve",
       args: [contractAddress, MAXUINT256],
       from: address
@@ -196,6 +198,19 @@ export class AppService {
       functionName: "purchaseTokens",
       from: this.getServerWalletAddress(),
       value: parseEther(amount)
+    })
+
+    return response;
+  }
+
+  async bet(prediction: string) {
+    const response = await this.walletClient.writeContract({
+      address: this.getContractAddress(),
+      abi: gameJson.abi,
+      functionName: "bet",
+      from: this.getServerWalletAddress(),
+      //value: parseEther(amount),
+      args: [prediction]
     })
 
     return response;
